@@ -1,0 +1,18 @@
+- name: Install Docker with the official convenience script
+  ansible.builtin.shell: curl -fsSL https://get.docker.com | sh
+  args:
+    creates: /usr/bin/docker
+
+- name: Allow the plain-HTTP lab registry
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    content: |
+      {"insecure-registries": ["{{ registry_hostport }}"]}
+    mode: "0644"
+  notify: Restart docker
+
+- name: Docker enabled and running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true

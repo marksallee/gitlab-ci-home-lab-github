@@ -1,0 +1,15 @@
+- name: Base setup on every node
+  hosts: lab
+  roles: [common]
+
+- name: Docker on runner and deploy
+  hosts: runner:deploy
+  roles: [docker]
+
+- name: GitLab CE with container registry
+  hosts: gitlab
+  roles: [gitlab]
+
+- name: GitLab Runner (Docker executor)
+  hosts: runner
+  roles: [gitlab_runner]

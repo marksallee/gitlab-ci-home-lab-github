@@ -1,0 +1,19 @@
+- name: Add the GitLab CE apt repository
+  ansible.builtin.shell: curl -fsSL https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | bash
+  args:
+    creates: /etc/apt/sources.list.d/gitlab_gitlab-ce.list
+
+- name: Install GitLab CE (long-running)
+  ansible.builtin.apt:
+    name: gitlab-ce
+  environment:
+    EXTERNAL_URL: "{{ gitlab_external_url }}"
+
+- name: Container registry and LXC-safe settings
+  ansible.builtin.blockinfile:
+    path: /etc/gitlab/gitlab.rb
+    marker: "# {mark} ANSIBLE managed"
+    block: |
+      registry_external_url '{{ gitlab_registry_url }}'
+      package['modify_kernel_parameters'] = false
+  notify: Reconfigure gitlab

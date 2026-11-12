@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars (git-ignored) and adjust. Contains no secrets.
+proxmox_endpoint = "https://192.168.50.250:8006/"
+gateway          = "192.168.50.1"
+dns_servers      = ["192.168.50.1"]
+ssh_public_keys  = ["ssh-ed25519 AAAA... you@laptop"]
+
+containers = {
+  gitlab = { vm_id = 201, cores = 4, memory_mb = 8192, swap_mb = 1024, disk_gb = 50, address = "192.168.50.251/24" }
+  runner = { vm_id = 202, cores = 2, memory_mb = 3072, swap_mb = 512, disk_gb = 30, address = "192.168.50.252/24" }
+  deploy = { vm_id = 203, cores = 2, memory_mb = 2048, swap_mb = 512, disk_gb = 15, address = "192.168.50.249/24" }
+}

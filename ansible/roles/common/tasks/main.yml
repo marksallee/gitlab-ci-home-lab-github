@@ -1,0 +1,21 @@
+- name: Stop Proxmox regenerating /etc/hosts on container start
+  ansible.builtin.file:
+    path: /etc/.pve-ignore.hosts
+    state: touch
+    modification_time: preserve
+    access_time: preserve
+
+- name: Lab host names
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE lab hosts"
+    block: |
+      {% for h in lab_hosts %}
+      {{ h.ip }} {{ h.names }}
+      {% endfor %}
+
+- name: Base packages
+  ansible.builtin.apt:
+    name: [curl, ca-certificates, tmux, perl, tzdata, openssh-server]
+    update_cache: true
+    cache_valid_time: 3600

@@ -1,0 +1,17 @@
+# Example addresses; override in group_vars/lab.yml (git-ignored, loaded for the "lab" group).
+lab_hosts:
+  - { ip: 192.168.50.251, names: "gitlab.lab" }
+  - { ip: 192.168.50.252, names: "runner.lab" }
+  - { ip: 192.168.50.249, names: "deploy.lab" }
+
+gitlab_external_url: http://gitlab.lab
+gitlab_registry_url: http://gitlab.lab:5050
+registry_hostport: gitlab.lab:5050
+gitlab_ip: 192.168.50.251
+
+gitlab_runner_url: http://gitlab.lab
+runner_concurrent: 3
+# Runner authentication token (glrt-...), created in the GitLab UI. Never commit it.
+# Read from the environment at run time:
+#   export GITLAB_RUNNER_TOKEN=glrt-XXXX && ansible-playbook site.yml
+gitlab_runner_token: "{{ lookup('env', 'GITLAB_RUNNER_TOKEN') }}"

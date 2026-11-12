@@ -1,0 +1,35 @@
+# Local template: security scanning jobs. Included from .gitlab-ci.yml.
+trivy-fs:
+  stage: scan
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  tags: [docker]
+  needs: []                       # no dependencies: starts immediately
+  script:
+    - trivy fs --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed .
+  allow_failure: true
+
+trivy-image:
+  stage: scan
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  tags: [docker]
+  needs: [build]                  # only waits for build; runs in parallel with test
+  variables:
+    TRIVY_USERNAME: $CI_REGISTRY_USER
+    TRIVY_PASSWORD: $CI_REGISTRY_PASSWORD
+  script:
+    - trivy image --exit-code 1 --severity CRITICAL --ignore-unfixed "$IMAGE"
+  allow_failure: true
+
+gitleaks:
+  stage: scan
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  tags: [docker]
+  needs: []
+  script:
+    - gitleaks detect --source . --verbose --redact

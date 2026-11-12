@@ -1,0 +1,52 @@
+- name: Add the GitLab Runner apt repository
+  ansible.builtin.shell: curl -fsSL https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh | bash
+  args:
+    creates: /etc/apt/sources.list.d/runner_gitlab-runner.list
+
+- name: Install gitlab-runner
+  ansible.builtin.apt:
+    name: gitlab-runner
+    update_cache: true
+
+- name: Check for an existing registration
+  ansible.builtin.command: grep -q '\[\[runners\]\]' /etc/gitlab-runner/config.toml
+  register: runner_registered
+  failed_when: false
+  changed_when: false
+
+- name: Register the runner (needs gitlab_runner_token)
+  ansible.builtin.command: >
+    gitlab-runner register --non-interactive --url {{ gitlab_runner_url }}
+    --token {{ gitlab_runner_token }} --executor docker --docker-image alpine:3.20
+  when: runner_registered.rc != 0 and gitlab_runner_token | length > 0
+  no_log: true
+
+- name: Total concurrent jobs
+  ansible.builtin.lineinfile:
+    path: /etc/gitlab-runner/config.toml
+    regexp: '^concurrent\s*='
+    line: "concurrent = {{ runner_concurrent }}"
+  notify: Restart gitlab-runner
+
+- name: Docker socket mount for image builds
+  ansible.builtin.lineinfile:
+    path: /etc/gitlab-runner/config.toml
+    regexp: '^\s+volumes\s*='
+    line: '    volumes = ["/var/run/docker.sock:/var/run/docker.sock", "/cache"]'
+  notify: Restart gitlab-runner
+
+- name: Name resolution inside job containers
+  ansible.builtin.lineinfile:
+    path: /etc/gitlab-runner/config.toml
+    regexp: '^\s+extra_hosts\s*='
+    insertafter: '^\s+image\s*='
+    line: '    extra_hosts = ["gitlab.lab:{{ gitlab_ip }}"]'
+  notify: Restart gitlab-runner
+
+- name: Allow two concurrent job requests
+  ansible.builtin.lineinfile:
+    path: /etc/gitlab-runner/config.toml
+    regexp: '^\s+request_concurrency\s*='
+    insertafter: '^\s+executor\s*='
+    line: "  request_concurrency = 2"
+  notify: Restart gitlab-runner

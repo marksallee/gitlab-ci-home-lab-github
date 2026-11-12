@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.cache/
+coverage.xml
+report.xml
+docs/progress.md
+
+*.swp
+.coverage
+
+scripts/private-patterns.txt
+.DS_Store
